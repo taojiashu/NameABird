@@ -39,6 +39,7 @@ fc7 = tf.stop_gradient(fc7)
 shape = (fc7.get_shape().as_list()[-1], nb_classes)
 fc8W = tf.Variable(tf.truncated_normal(shape, stddev=1e-2))
 fc8b = tf.Variable(tf.zeros(nb_classes))
+saver = tf.train.Saver()
 logits = tf.nn.xw_plus_b(fc7, fc8W, fc8b)
 
 # Define loss, training, accuracy operations.
@@ -70,6 +71,8 @@ def eval_on_data(X, y, sess):
 
 with tf.Session() as sess:
     sess.run(init_op)
+    saver.restore(sess, "/tmp/model.ckpt")
+    print("Model restored.")
 
     for i in range(epochs):
         # training
@@ -80,6 +83,8 @@ with tf.Session() as sess:
             sess.run(train_op, feed_dict={features: X_train[offset:end], labels: Y_train[offset:end]})
 
         val_loss, val_acc = eval_on_data(X_test, Y_test, sess)
+        save_path = saver.save(sess, "/tmp/model.ckpt")
+        print("Model saved in path: %s" % save_path)
         print("Epoch", i+1)
         print("Time: %.3f seconds" % (time.time() - t0))
         print("Validation Loss =", val_loss)

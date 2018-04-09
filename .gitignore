@@ -4,3 +4,4 @@
 *.npy
 *.pdf
 images/*
+*.pyc
