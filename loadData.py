@@ -31,6 +31,6 @@ class CUB200(object):
 
                 for image_name in class_images:
                     all_images.append(self._load_image(c, image_name))
-                    label = int(c[:3])
+                    label = int(c[:3]) - 1  # label will be from 0 to 199
                     all_labels.append(label)
         return np.array(all_images).astype(np.float32), np.array(all_labels)
