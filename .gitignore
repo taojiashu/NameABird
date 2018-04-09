@@ -2,3 +2,6 @@
 *.xml
 *.idea
 *.npy
+*.jpg
+*.mat
+*.pdf
