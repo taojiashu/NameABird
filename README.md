@@ -8,6 +8,7 @@ To run our implementation, you need the following dependencies:
 - NumPy
 - Pandas
 - SciPy
+- scikit-learn
 
 ## Get started
 1. Download the dataset from [this webpage](http://www.vision.caltech.edu/visipedia/CUB-200.html) and unzip it.
