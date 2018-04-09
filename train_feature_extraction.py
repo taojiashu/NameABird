@@ -11,7 +11,7 @@ from alexnet import AlexNet
 from loadData import CUB200
 
 nb_classes = 200
-epochs = 1
+epochs = 10
 batch_size = 128
 
 # Load data.
@@ -71,7 +71,7 @@ def eval_on_data(X, y, sess):
 
 with tf.Session() as sess:
     sess.run(init_op)
-    saver.restore(sess, "/tmp/model.ckpt")
+    saver.restore(sess, "./checkpoint/model.ckpt")
     print("Model restored.")
 
     for i in range(epochs):
@@ -83,7 +83,7 @@ with tf.Session() as sess:
             sess.run(train_op, feed_dict={features: X_train[offset:end], labels: Y_train[offset:end]})
 
         val_loss, val_acc = eval_on_data(X_test, Y_test, sess)
-        save_path = saver.save(sess, "/tmp/model.ckpt")
+        save_path = saver.save(sess, "./checkpoint/model.ckpt")
         print("Model saved in path: %s" % save_path)
         print("Epoch", i+1)
         print("Time: %.3f seconds" % (time.time() - t0))
