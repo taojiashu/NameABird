@@ -1,14 +1,17 @@
-import pickle
 import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' #Hide messy TensorFlow warnings
-import warnings
-warnings.filterwarnings("ignore") #Hide messy Numpy warnings
 import time
+import warnings
+
 import tensorflow as tf
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
+
 from alexnet import AlexNet
 from loadData import CUB200
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' #Hide messy TensorFlow warnings
+
+warnings.filterwarnings("ignore") #Hide messy Numpy warnings
 
 nb_classes = 200
 epochs = 10

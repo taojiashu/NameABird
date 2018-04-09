@@ -1,6 +1,8 @@
 import os
+
 import numpy as np
 from scipy.misc import imread, imresize
+
 
 # Modified from
 # https://github.com/Hezi-Resheff/Oreilly-Blog/blob/master/01_Transfer_Learning_Multiple_Pre_Trained/cub_util.py

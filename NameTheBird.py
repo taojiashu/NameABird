@@ -1,8 +1,10 @@
 import time
-import tensorflow as tf
+
 import numpy as np
 import pandas as pd
+import tensorflow as tf
 from scipy.misc import imread, imresize
+
 from alexnet import AlexNet
 
 bird_names = pd.read_csv('bird_classes.csv')
