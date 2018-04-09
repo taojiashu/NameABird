@@ -1,0 +1,6 @@
+*.iml
+*.xml
+*.idea
+*.npy
+*.pdf
+images/*
