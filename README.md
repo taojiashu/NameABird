@@ -11,10 +11,9 @@ To run our implementation, you need the following dependencies:
 - scikit-learn
 
 ## Get started
-1. Download the dataset from [this webpage](http://www.vision.caltech.edu/visipedia/CUB-200.html) and unzip it.
-2. Check that the name of the directory is **images** and put it in the project directory.
+1. Download [the checkpoint](https://drive.google.com/open?id=14ZVMkrpwj1pOSYl9cuWpo1eHjXtrGpFJ) to load the training, validation and test sets.
 
 ## Credit
 - The weights of AlexNet is downloaded from http://www.cs.toronto.edu/~guerzhoy/tf_alexnet/.
 - The implementation is inspired by [this GitHub repository](https://github.com/Nazanin1369/Alexnet-Transfer-Learning)
-- The bird image dataset used is the [Caltech-UCSD Birds 200 dataset](http://www.vision.caltech.edu/visipedia/CUB-200.html)
+- The bird image dataset used is the [Caltech-UCSD Birds-200-2011 dataset](http://www.vision.caltech.edu/visipedia/CUB-200-2011.html)
