@@ -2,27 +2,30 @@ import os
 import time
 import warnings
 
+import h5py
+import numpy as np
 import tensorflow as tf
-from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
 
 from alexnet import AlexNet
-from loadData import CUB200
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' #Hide messy TensorFlow warnings
 
 warnings.filterwarnings("ignore") #Hide messy Numpy warnings
 
 nb_classes = 200
-epochs = 10
+epochs = 1
 batch_size = 128
 
 # Load data.
-path = "/Users/Jiashu/Documents/University/Y2S2/CS3244/NameABird/images/"
-X, Y = CUB200(path).load_dataset()
-
-# Split training and test sets
-X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.30, random_state=42)
+h5 = h5py.File('data.h5', 'r')
+X_train = np.array(h5.get('X_train'))
+X_test = np.array(h5.get('X_test'))
+Y_train = np.array(h5.get('Y_train'))
+Y_test = np.array(h5.get('Y_test'))
+X_val = np.array(h5.get('X_val'))
+Y_val = np.array(h5.get('Y_val'))
+h5.close()
 
 # Define placeholders and resize operation.
 features = tf.placeholder(tf.float32, (None, 224, 224, 3))
@@ -58,6 +61,7 @@ accuracy_op = tf.reduce_mean(tf.cast(tf.equal(preds, labels), tf.float32))
 
 # Train and evaluate the feature extraction model.
 
+
 def eval_on_data(X, y, sess):
     total_acc = 0
     total_loss = 0
@@ -72,6 +76,7 @@ def eval_on_data(X, y, sess):
 
     return total_loss/X.shape[0], total_acc/X.shape[0]
 
+
 with tf.Session() as sess:
     sess.run(init_op)
     saver.restore(sess, "./checkpoint/model.ckpt")
@@ -85,7 +90,7 @@ with tf.Session() as sess:
             end = offset + batch_size
             sess.run(train_op, feed_dict={features: X_train[offset:end], labels: Y_train[offset:end]})
 
-        val_loss, val_acc = eval_on_data(X_test, Y_test, sess)
+        val_loss, val_acc = eval_on_data(X_val, Y_val, sess)
         save_path = saver.save(sess, "./checkpoint/model.ckpt")
         print("Model saved in path: %s" % save_path)
         print("Epoch", i+1)
@@ -93,3 +98,7 @@ with tf.Session() as sess:
         print("Validation Loss =", val_loss)
         print("Validation Accuracy =", val_acc)
         print("")
+
+    _, test_acc = eval_on_data(X_test, Y_test, sess)
+    print("Test Accuracy =", test_acc)
+    print("")
