@@ -13,3 +13,4 @@ checkpoint/*
 *.fls
 *.log
 *.gz
+database/*
