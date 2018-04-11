@@ -14,7 +14,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' #Hide messy TensorFlow warnings
 warnings.filterwarnings("ignore") #Hide messy Numpy warnings
 
 nb_classes = 200
-epochs = 2
+epochs = 10
 batch_size = 128
 
 # Load data.
@@ -51,6 +51,7 @@ logits = tf.nn.xw_plus_b(fc7, fc8W, fc8b)
 # Define loss, training, accuracy operations.
 cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=labels)
 loss_op = tf.reduce_mean(cross_entropy)
+tf.summary.scalar('cross_entropy', loss_op)
 
 opt = tf.train.AdamOptimizer()
 train_op = opt.minimize(loss_op, var_list=[fc8W, fc8b])
@@ -58,6 +59,9 @@ init_op = tf.global_variables_initializer()
 
 preds = tf.arg_max(logits, 1)
 accuracy_op = tf.reduce_mean(tf.cast(tf.equal(preds, labels), tf.float32))
+tf.summary.scalar('accuracy', accuracy_op)
+
+merged = tf.summary.merge_all()
 
 # Train and evaluate the feature extraction model.
 
@@ -79,25 +83,30 @@ def eval_on_data(X, y, sess):
 
 with tf.Session() as sess:
     sess.run(init_op)
-    saver.restore(sess, "./checkpoint/model.ckpt")
-    print("Model restored.")
-    val_summary = tf.summary.FileWriter("./log/val")
+    #saver.restore(sess, "./checkpoint/model.ckpt")
+    #print("Model restored.")
+    train_writer = tf.summary.FileWriter("./log/train", sess.graph)
+    val_writer = tf.summary.FileWriter("./log/val")
+    test_writer = tf.summary.FileWriter("./log/test")
 
+    steps = 0
     for i in range(epochs):
         # training
         X_train, Y_train = shuffle(X_train, Y_train)
         t0 = time.time()
         for offset in range(0, X_train.shape[0], batch_size):
+            steps += 1
             end = offset + batch_size
-            sess.run(train_op, feed_dict={features: X_train[offset:end], labels: Y_train[offset:end]})
+            summary, _ = sess.run([merged, train_op], feed_dict={features: X_train[offset:end], labels: Y_train[offset:end]})
+            train_writer.add_summary(summary, steps)
 
         val_loss, val_acc = eval_on_data(X_val, Y_val, sess)
 
         validation_acc_summary = tf.summary.scalar('val_accuracy', val_acc)
         validation_summary = sess.run(validation_acc_summary)
-        val_summary.add_summary(validation_summary, i)
+        val_writer.add_summary(validation_summary, steps)
 
-        save_path = saver.save(sess, "./checkpoint/model.ckpt")
+        save_path = saver.save(sess, "./checkpoint/model_4.11.ckpt")
         print("Model saved in path: %s" % save_path)
         print("Epoch", i+1)
         print("Time: %.3f seconds" % (time.time() - t0))
@@ -106,5 +115,9 @@ with tf.Session() as sess:
         print("")
 
     _, test_acc = eval_on_data(X_test, Y_test, sess)
+    test_acc_summary = tf.summary.scalar('test_accuracy', test_acc)
+    test_summary = sess.run(test_acc_summary)
+    test_writer.add_summary(test_summary)
+
     print("Test Accuracy =", test_acc)
     print("")
