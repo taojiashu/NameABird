@@ -14,7 +14,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' #Hide messy TensorFlow warnings
 warnings.filterwarnings("ignore") #Hide messy Numpy warnings
 
 nb_classes = 200
-epochs = 1
+epochs = 2
 batch_size = 128
 
 # Load data.
@@ -81,6 +81,7 @@ with tf.Session() as sess:
     sess.run(init_op)
     saver.restore(sess, "./checkpoint/model.ckpt")
     print("Model restored.")
+    val_summary = tf.summary.FileWriter("./log/val")
 
     for i in range(epochs):
         # training
@@ -91,6 +92,11 @@ with tf.Session() as sess:
             sess.run(train_op, feed_dict={features: X_train[offset:end], labels: Y_train[offset:end]})
 
         val_loss, val_acc = eval_on_data(X_val, Y_val, sess)
+
+        validation_acc_summary = tf.summary.scalar('val_accuracy', val_acc)
+        validation_summary = sess.run(validation_acc_summary)
+        val_summary.add_summary(validation_summary, i)
+
         save_path = saver.save(sess, "./checkpoint/model.ckpt")
         print("Model saved in path: %s" % save_path)
         print("Epoch", i+1)
