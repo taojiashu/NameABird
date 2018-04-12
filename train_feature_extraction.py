@@ -41,12 +41,15 @@ fc7 = AlexNet(resized, feature_extract=True)
 # This also makes training faster, less work to do!
 fc7 = tf.stop_gradient(fc7)
 
+keep_prob = tf.placeholder(tf.float32)
+drop_out = tf.nn.dropout(fc7, keep_prob)
+
 # Add the final layer for traffic sign classification.
-shape = (fc7.get_shape().as_list()[-1], nb_classes)
+shape = (drop_out.get_shape().as_list()[-1], nb_classes)
 fc8W = tf.Variable(tf.truncated_normal(shape, stddev=1e-2))
 fc8b = tf.Variable(tf.zeros(nb_classes))
 saver = tf.train.Saver()
-logits = tf.nn.xw_plus_b(fc7, fc8W, fc8b)
+logits = tf.nn.xw_plus_b(drop_out, fc8W, fc8b)
 
 # Define loss, training, accuracy operations.
 cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=labels)
@@ -69,12 +72,13 @@ merged = tf.summary.merge_all()
 def eval_on_data(X, y, sess):
     total_acc = 0
     total_loss = 0
+    k = 1
     for offset in range(0, X.shape[0], batch_size):
         end = offset + batch_size
         X_batch = X[offset:end]
         y_batch = y[offset:end]
 
-        loss, acc = sess.run([loss_op, accuracy_op], feed_dict={features: X_batch, labels: y_batch})
+        loss, acc = sess.run([loss_op, accuracy_op], feed_dict={features: X_batch, labels: y_batch, keep_prob: k})
         total_loss += (loss * X_batch.shape[0])
         total_acc += (acc * X_batch.shape[0])
 
@@ -94,10 +98,11 @@ with tf.Session() as sess:
         # training
         X_train, Y_train = shuffle(X_train, Y_train)
         t0 = time.time()
+        k = 0.5
         for offset in range(0, X_train.shape[0], batch_size):
             steps += 1
             end = offset + batch_size
-            summary, _ = sess.run([merged, train_op], feed_dict={features: X_train[offset:end], labels: Y_train[offset:end]})
+            summary, _ = sess.run([merged, train_op], feed_dict={features: X_train[offset:end], labels: Y_train[offset:end], keep_prob: k})
             train_writer.add_summary(summary, steps)
 
         val_loss, val_acc = eval_on_data(X_val, Y_val, sess)
@@ -106,7 +111,7 @@ with tf.Session() as sess:
         validation_summary = sess.run(validation_acc_summary)
         val_writer.add_summary(validation_summary, steps)
 
-        save_path = saver.save(sess, "./checkpoint/model_4.11.ckpt")
+        save_path = saver.save(sess, "./checkpoint/model_4.12.ckpt")
         print("Model saved in path: %s" % save_path)
         print("Epoch", i+1)
         print("Time: %.3f seconds" % (time.time() - t0))
