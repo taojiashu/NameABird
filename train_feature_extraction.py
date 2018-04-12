@@ -1,3 +1,4 @@
+import datetime
 import os
 import time
 import warnings
@@ -20,11 +21,17 @@ batch_size = 128
 # Load data.
 h5 = h5py.File('data.h5', 'r')
 X_train = np.array(h5.get('X_train'))
+print("X_train loaded")
 X_test = np.array(h5.get('X_test'))
+print("X_test loaded")
 Y_train = np.array(h5.get('Y_train'))
+print("Y_train loaded")
 Y_test = np.array(h5.get('Y_test'))
+print("Y_test loaded")
 X_val = np.array(h5.get('X_val'))
+print("X_val loaded")
 Y_val = np.array(h5.get('Y_val'))
+print("Y_val loaded")
 h5.close()
 
 # Define placeholders and resize operation.
@@ -36,9 +43,6 @@ resized = tf.image.resize_images(features, (227, 227))
 # this allows us to redo the last layer for the traffic signs
 # model.
 fc7 = AlexNet(resized, feature_extract=True)
-# NOTE: `tf.stop_gradient` prevents the gradient from flowing backwards
-# past this point, keeping the weights before and up to `fc7` frozen.
-# This also makes training faster, less work to do!
 fc7 = tf.stop_gradient(fc7)
 
 keep_prob = tf.placeholder(tf.float32)
@@ -66,8 +70,6 @@ tf.summary.scalar('accuracy', accuracy_op)
 
 merged = tf.summary.merge_all()
 
-# Train and evaluate the feature extraction model.
-
 
 def eval_on_data(X, y, sess):
     total_acc = 0
@@ -89,7 +91,7 @@ with tf.Session() as sess:
     sess.run(init_op)
     #saver.restore(sess, "./checkpoint/model.ckpt")
     #print("Model restored.")
-    train_writer = tf.summary.FileWriter("./log/train", sess.graph)
+    train_writer = tf.summary.FileWriter("./log/train/" + str(datetime.date.today()), sess.graph)
     val_writer = tf.summary.FileWriter("./log/val")
     test_writer = tf.summary.FileWriter("./log/test")
 

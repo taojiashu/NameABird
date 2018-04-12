@@ -25,7 +25,7 @@ init = tf.global_variables_initializer()
 sess = tf.Session()
 sess.run(init)
 
-saver.restore(sess, "./checkpoint/model.ckpt")
+saver.restore(sess, "./checkpoint/model_4.12.ckpt")
 print("Model restored.")
 
 # Read Images
