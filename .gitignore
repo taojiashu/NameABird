@@ -16,3 +16,4 @@ checkpoint/*
 database/*
 *.h5
 log/*
+.ipynb_checkpoints
