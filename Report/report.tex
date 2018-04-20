@@ -19,13 +19,9 @@ National University of Singapore}
 \begin{document}
 \maketitle
 
-\begin{abstract}
-Fine grained classification.
-\end{abstract}
-
 \section{Introduction}
 The computer vision systems recently experienced substantial development in terms of
-performance, through researches that exploits large scale visual datasets like the ImageNet.
+performance, through researches that exploit large scale visual datasets like the ImageNet.
 ImageNet was formally a project aimed at labelling and categorising thousands of object classes,
 but many pre-trained networks based on ImageNet have demonstrated excellent ability to generalise
 to images outside the dataset via transfer learning. This suggests the possibility for many
@@ -42,14 +38,57 @@ stories related to flowers that attracts numerous users in China. It reached the
 in the China App Store under the category of Education. This paper aims to develop an accurate
 model that can be applied to replicate the success in the context of Singapore.
 
+Our application aims to inform users of the species of the bird from the photo they upload. It would
+eventually incorporates the description of the bird to achieve educational purposes. This is inspired
+by recent news reports that disclose the alarming circumstances faced by birds in Singapore. We wish
+to use our application to educate and raise awareness among Singaporeans, so that the wild birds in
+Singapore can be better protected.
+
+To achieve this, we justified the most famous bird dataset in the world to train our model. We adopted
+convolutional neural networks in classifying images. The details of our implementation will be
+explained in depth in the later sections.
+
 \section{Individual contribution}
+\begin{itemize}
+    \item \textbf{Jiashu:} Coding the model, debugging, tuning and visualising the model, building and processing the dataset, report writing and researching
+    \item \textbf{Zeyong:} Coding, debugging and tuning the model, report writing and training the model
+    \item \textbf{Zhaoxuan:} Testing and tuning the model, report writing and training the model
+    \item \textbf{Peisheng:} Finding the dataset, discussing the model, proposing the topic
+    \item \textbf{Yuchen:} Discussing the model, proposing the topic
+    \item \textbf{Xiangfei:} Discussing the model and the topic
+\end{itemize}
 
 \section{Related work}
-\subsection{Dateset}
-The dataset used in this work is obtained from an openly available web resource named 
+\subsection{Dateset and pre-processing}
+The dataset used in this work is obtained from an openly available web resource named
 \textbf{Caltech-UCSD Birds (CUB)-200-2011} \cite{WahCUB_200_2011}.
 The dataset consists of 11788 bird images of 200 species. Each image is annotated with 1
-bounding box, 15 part locations and 312 binary attributes.
+bounding box, 15 part locations and 312 binary attributes. The images in this dataset are
+downloaded from Flickr, and the attribute labels are annotated by Amazon Mechanical Turk workers.
+However, in annotating the attributes, the workers are not always certain. Thus, they indicate their
+confidence on a scale of 4, where 4 being very confident and 1 being not visible.
+
+In our project, we aim to recognise the species names of the bird from a user-uploaded image.
+Since users are not experts, they would not know how to bound the images and label all the parts properly.
+Therefore, in order to ensure the distribution of training images and test images are the same, we decided
+to only use the class labels in the dataset.
+
+In order to import the dataset, we manually built it from the directories. There are no pre-processed
+pickle files online, so we did from scratch. In training and test sets splitting, we strictly followed
+the recommendation in the dataset. So in the end, there are 5994 training images and 5794 test images.
+We further split the training set into training and validation sets. 10\% of training images are randomly chosen
+and put into the validation set. Overall, there are 5394 training images, 600 validation images and 5894 test images.
+
+To ensure that the distribution of images in the training and validation sets is not skewed, we did a distribution test on the
+training and validation sets. The expected mean values of the labels for either set is $\frac{0+199}{2}=99.5$. The mean value of
+the labels in the training set is $99.61$ while those in the validation set is $98.045$. Therefore, we conclude the distribution
+of images in the training and validation sets are the same.
+
+Since the images are downloaded from Flickr, they are of different sizes. We resized them to be $224\times 224\times 3$, before
+resizing them again to pass to our model.
+
+The pre-processed dataset with training, validation and test sets split are uploaded. They can be downloaded at
+\url{https://drive.google.com/open?id=1VvAjkdxsJsPqpVAgJY9I8Z7rFQnZmYoo}.
 
 \subsection{AlexNet}
 AlexNet \cite{Alex} is a famous convolutional neural network (CNN). It won the ImageNet Large Scale
@@ -61,12 +100,12 @@ is designed to classify objects into 1000 distinct subcategories.The original Al
 layers are convolutional and the remaining three are fully connected layers. The exact configurations
 are listed below:
 \begin{description}
-	\item [conv1] 96 kernels of size $11 \times 11 \times 3$, stride = 4.
-	\item [conv2] 256 kernels of size $5 \times 5 \times 48$, stride = 1.
-	\item [conv3] 384 kernels of size $3 \times 3 \times 256$, stride = 1.
+	\item [conv1] 96 kernels of size $11 \times 11 \times 3$, strides = 4.
+	\item [conv2] 256 kernels of size $5 \times 5 \times 48$, strides = 1.
+	\item [conv3] 384 kernels of size $3 \times 3 \times 256$, strides = 1.
 	\item [conv4, conv5] 384 kernels of size $3 \times 3 \times 192$, stride = 1.
 	\item [FC6, FC7] 4096 fully connected neurons
-    \item [FC8] 100 fully connected neurons (linear classifier)
+    \item [FC8] 1000 fully connected neurons (linear classifier)
 \end{description}
 
 \subsection{Fine-grained classification}
@@ -83,7 +122,7 @@ They utilised bounding boxes of images to do foreground refinement, which greatl
 to detect the outlines of birds in a messy background.
 
 \subsection{Cost-sensitive deep metric learning}
-Zhao et al. \cite{Zhao} sharply points out the current deep learning loss function gives equal attention to all
+Zhao et al. \cite{Zhao} sharply point out the current deep learning loss function gives equal attention to all
 subcategories. However, there usually exists some subcategories that are very similar to each other, and has very
 high probability of being mis-classified. To address this issue, Zhao et al. \cite{Zhao} proposed a new loss function
 that penalises more heavily on similar subcategories.
@@ -123,6 +162,11 @@ only does gradient descent on the parameters in the linear classifier layer. It 
 training time and complexity of our model while retain the large part of feature extraction capabilities of
 AlexNet.
 
+\subsection{Pre-trained model}
+Since the original AlexNet was programmed in Caffe and we are using TensorFlow, we used a converted version of AlexNet from
+one programming assignment of the Udacity self-driving car course. The pre-trained weights of the Alexnet is kindly provided by Guerzhoy
+at \url{http://www.cs.toronto.edu/~guerzhoy/tf_alexnet/}.
+
 \subsection{Optimisation}
 We chose to do minibatch gradient descent to achieve a balance between training time for each step and
 variance of the stochastic gradient updates. The batch size is then empirically chosen to be 128. We also
@@ -144,14 +188,14 @@ of training accuracy and the cross-entropy loss, we found out that there may be 
 \begin{figure}
     \begin{center}
         \includegraphics[width=0.5\textwidth]{training_accuracy}
-        \caption{Training accuracy against steps in a vanilla model (up). Training accuracy against steps using dropout (mid).}
+        \caption{Training accuracy against steps in a plain model (up). Training accuracy against steps using dropout (mid).}
     \end{center}
 \end{figure}
 
 \begin{figure}
     \begin{center}
         \includegraphics[width=0.5\textwidth]{cross_entropy}
-        \caption{Cross-entropy loss against steps in a vanilla model (bottom). Cross-entropy loss against steps using dropout (mid).}
+        \caption{Cross-entropy loss against steps in a plain model (bottom). Cross-entropy loss against steps using dropout (mid).}
     \end{center}
 \end{figure}
 
@@ -164,7 +208,7 @@ accuracy and validation accuracy suggests that our model does not generalise wel
 To tackle overfitting, there are three common ways:
 \begin{center}
     \begin{enumerate}
-        \item Input more data
+        \item Increase input size
         \item Reduce model complexity
         \item Dropout
     \end{enumerate}
@@ -219,7 +263,7 @@ training set. The image processing programme is taken from the source code of in
 
 Due to the limited computing power, we decided to use Google Colab to accelerate training with cloud GPUs. We ran the script over the night, and sadly discovered
 that the runtime was terminated by Google. It is probably because it takes too much time to load our dataset and even more time to do image augmentation. Unfortunately,
-we did not finish image augmentation and tested its performance.
+we did not finish image augmentation and test its performance.
 
 \section{Application}
 After training the model, we decided to make an application out of the neural network. The programme takes in the saved weight of all parameters in the model, and
@@ -227,7 +271,61 @@ takes in images uploaded by the user. We name our programme "Name A Bird" becaus
 we decided to output the five most likely categories with their respective confidence level. The reason behind this is that our model is only 48\% accurate in
 categorising birds. Only outputting the most likely category have a larger chance of making a mistake.
 
-We did a few tests on the programme and the programme takes less than 1 second to output the five most likely categories of a bird for each single image input.
+We did a few tests on the programme and the programme takes around 0.1 seconds to output the five most likely categories of a bird for each single image input.
+\begin{figure}[htp]
+\centering
+\includegraphics[width=.25\textwidth]{Blue_jay}\hfill
+\includegraphics[width=.25\textwidth]{Yellow_breasted}
+\caption{Test images. Up: Blue Jay. Bottom: Yellow Breasted.}
+\end{figure}
+
+\begin{figure}
+\includegraphics[width=.45\textwidth]{test}
+\caption{Test images. Up: Blue Jay. Bottom: Yellow Breasted.}
+\end{figure}
+
+Figure 5 shows the two images we used to test our application. They are Blue Jay and Yellow Breasted respectively. Figure 6 is a snapshot of our programme output.
+The two correct predictions did not achieve 100\% confidence, but they are significantly high. We then manually compared the second probable classes proposed by
+the programme, and realised that they are very similar to the correct classes. Therefore, we believe that our model does well in detecting subtle differences
+between similar classes in a short time.
+
+\section{Reflection}
+\begin{itemize}
+    \item \textbf{Jiashu:} Fine-grained classification is more challenging than ImageNet's object recognition. In order to achieve high accuracy in find-grained
+    classification, more input data is needed. Or additional features besides the images can be fed into the
+     model. Moreover, the loss function can be tuned to improve the performance of fine-grained
+     classification.
+    \item \textbf{Zeyong:} Although image recognition seems to be an easy task given the abundance of existing models, fine-grained classification is still
+    challenging given the subtle differences between certain pairs of subgroups. We need to strike a balance
+     between the complexity of the model and the performance of the model.
+    \item \textbf{Zhaoxuan:}
+    \item \textbf{Peisheng:} First, I have learnt the fields where machine learning is applicable and the
+    practicality of it. We investigated topics including object recognition on vehicles and animals, rain
+    fall prediction, and sound recognition. We tried to collect data such as images of roads, of birds,
+    rain fall statistics, sound wave files. We discussed with the lecturer on the feasibility of these
+    topics and finally decide on bird recognition.
+Second, I have learnt about the process of machine learning. Specifically, to preprocess images and labels,
+to use existing machine learning framework (TensorFlow) and pretrained model (AlexNet), and particularly,
+to separate part of the images for validation, which indicates whether the model has overfitted to the
+training data.
+    \item \textbf{Yuchen:} When the model overfits the training data, traditional methods including
+    dropouts or penalizing weights may not work well if we do not have adequate examples in each class and
+    when the number of classes is relatively large
+    \item \textbf{Xiangfei:}
+\end{itemize}
+
+\section{Conclusion and future improvement}
+We did a transfer learning from AlexNet and made a few enhancement on the model to implement our bird classifier. Compared with other popular models, our model
+does not use additional features besides the original images. This compromises the performance of our model, but ensures that plain images uploaded by users
+can be easily recognised by our application.
+
+Suffering overfitting, in the future, we would like to collect more images from the Internet to increase the size of the training set. Moreover, we will
+perform image augmentation to add noise and variation to the input to build a more robust model. We would also use utilise Generative Adversarial Networks (GANs)
+to improve the performance of our classifier. We would also want to use a deeper network such as VGG-19 to extract features from images. This incurs longer training time,
+but hopefully with GPUs, it could output a better model in the end.
+
+Last but not least, we would like to add more species, especially those in Singapore, to our model. Currently there is no dataset about birds in Singapore. We
+would manually collect and label images from the Internet, and re-train certain parts of our model to cater for Singapore's bird species.
 
 \bibliography{reference}
 \bibliographystyle{unsrt}
